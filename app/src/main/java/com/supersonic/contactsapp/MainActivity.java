@@ -1,13 +1,16 @@
 package com.supersonic.contactsapp;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.DefaultItemAnimator;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.room.Room;
 
 import android.content.DialogInterface;
+import android.graphics.Canvas;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -23,6 +26,7 @@ import java.util.ArrayList;
 
 import Data.ContactsAppDatabase;
 import Model.Contact;
+import it.xabaras.android.recyclerview.swipedecorator.RecyclerViewSwipeDecorator;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -48,6 +52,9 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setItemAnimator(new DefaultItemAnimator());
         recyclerView.setAdapter(contactsAdapter);
 
+        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(callBackMethod);
+        itemTouchHelper.attachToRecyclerView(recyclerView);
+
         FloatingActionButton addContactButton = findViewById(R.id.floatingActionButton);
 
         addContactButton.setOnClickListener(new View.OnClickListener() {
@@ -59,6 +66,36 @@ public class MainActivity extends AppCompatActivity {
 
 
     }
+
+    ItemTouchHelper.SimpleCallback callBackMethod = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
+        @Override
+        public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
+            return false;
+        }
+
+        @Override
+        public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
+            int position = viewHolder.getAdapterPosition();
+            deleteContact(contactArrayList.get(position),position);
+        }
+
+        @Override
+        public void onChildDraw(@NonNull Canvas c, @NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
+
+            new RecyclerViewSwipeDecorator.Builder(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
+                    .addSwipeLeftLabel("Delete")
+                            .setSwipeLeftLabelColor(getResources().getColor(R.color.white))
+                                    .addSwipeLeftActionIcon(R.drawable.baseline_delete_24)
+                                            .setSwipeLeftActionIconTint(getResources().getColor(R.color.white))
+                                                    .addSwipeLeftBackgroundColor(getResources().getColor(com.google.android.material.R.color.design_default_color_error))
+                                                            .addSwipeLeftCornerRadius(1,6)
+                                                                .addSwipeLeftPadding(1,8,8,8)
+                                                                    .create()
+                                                                        .decorate();
+
+            super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
+        }
+    };
 
     public void addAndEditContacts(final boolean isUpdate, final Contact contact, final int position){
 
@@ -83,7 +120,7 @@ public class MainActivity extends AppCompatActivity {
             phoneNumberEditText.setText(contact.getPhoneNumber());
         }
 
-        alertDialogBuilderUserInput.setCancelable(false)
+        alertDialogBuilderUserInput.setCancelable(true)
                 .setPositiveButton(isUpdate ? "Update" : "Save", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
