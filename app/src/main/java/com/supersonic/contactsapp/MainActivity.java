@@ -3,12 +3,14 @@ package com.supersonic.contactsapp;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.databinding.DataBindingUtil;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.room.Room;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Canvas;
 import android.os.AsyncTask;
@@ -21,6 +23,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.supersonic.contactsapp.databinding.ActivityMainBinding;
 
 import java.util.ArrayList;
 
@@ -35,12 +38,19 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private ContactsAppDatabase contactsAppDatabase;
 
+    private ActivityMainBinding activityMainBinding;
+    private MainActivityButtonsHandler mainActivityButtonsHandler;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        recyclerView = findViewById(R.id.mainRecyclerView);
+        activityMainBinding = DataBindingUtil.setContentView(this, R.layout.activity_main);
+        mainActivityButtonsHandler = new MainActivityButtonsHandler(this);
+        activityMainBinding.setButtonHandler(mainActivityButtonsHandler);
+
+        recyclerView = activityMainBinding.mainRecyclerView;
         contactsAppDatabase = Room.databaseBuilder(getApplicationContext(), ContactsAppDatabase.class, "ContactsDB")
                 .build();
 
@@ -55,16 +65,6 @@ public class MainActivity extends AppCompatActivity {
         ItemTouchHelper itemTouchHelper = new ItemTouchHelper(callBackMethod);
         itemTouchHelper.attachToRecyclerView(recyclerView);
 
-        FloatingActionButton addContactButton = findViewById(R.id.floatingActionButton);
-
-        addContactButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                addAndEditContacts(false, null, -1);
-            }
-        });
-
-
     }
 
     ItemTouchHelper.SimpleCallback callBackMethod = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
@@ -76,7 +76,8 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
             int position = viewHolder.getAdapterPosition();
-            deleteContact(contactArrayList.get(position),position);
+            Contact contact = contactArrayList.get(viewHolder.getAdapterPosition());
+            deleteContact(contact,position);
         }
 
         @Override
@@ -125,12 +126,6 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
 
-                    }
-                })
-                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                            dialog.cancel();
                     }
                 });
 
@@ -256,6 +251,19 @@ public class MainActivity extends AppCompatActivity {
         protected void onPostExecute(Void unused) {
             super.onPostExecute(unused);
             contactsAdapter.notifyDataSetChanged();
+        }
+    }
+
+    public class MainActivityButtonsHandler{
+
+        Context context;
+
+        public MainActivityButtonsHandler(Context context){
+            this.context = context;
+        }
+
+        public void addContactButtonClick(View view){
+            addAndEditContacts(false, null, -1);
         }
     }
 }

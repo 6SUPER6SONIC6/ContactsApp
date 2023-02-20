@@ -8,33 +8,30 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.databinding.DataBindingUtil;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.supersonic.contactsapp.databinding.ContactListItemBinding;
 
 import java.util.ArrayList;
 
 import Model.Contact;
 
-public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.MyViewHolder> {
+public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.ContactViewHolder> {
 
     private Context context;
     private ArrayList<Contact> contacts;
     private MainActivity mainActivity;
 
 
-    public class MyViewHolder extends RecyclerView.ViewHolder{
+    public class ContactViewHolder extends RecyclerView.ViewHolder{
 
-        public TextView firstNameTextView;
-        public TextView secondNameTextView;
-        public TextView emailTextView;
-        public TextView phoneNumberTextView;
+        private ContactListItemBinding contactListItemBinding;
 
-        public MyViewHolder(View view){
-            super(view);
+        public ContactViewHolder(ContactListItemBinding contactListItemBinding){
+            super(contactListItemBinding.getRoot());
 
-            firstNameTextView = view.findViewById(R.id.firstNameTextView);
-            secondNameTextView = view.findViewById(R.id.secondNameTextView);
-            emailTextView = view.findViewById(R.id.emailTextView);
-            phoneNumberTextView = view.findViewById(R.id.phoneNumberTextView);
+            this.contactListItemBinding = contactListItemBinding;
 
         }
     }
@@ -47,21 +44,24 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.MyView
 
     @NonNull
     @Override
-    public MyViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.contact_list_item, parent, false);
+    public ContactViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
 
-        return new MyViewHolder(itemView);
+
+        ContactListItemBinding contactListItemBinding = DataBindingUtil.inflate(
+                LayoutInflater.from(parent.getContext()),
+                R.layout.contact_list_item,
+                parent,
+                false);
+
+        return new ContactViewHolder(contactListItemBinding);
     }
 
     @Override
-    public void onBindViewHolder(MyViewHolder holder, @SuppressLint("RecyclerView") final int position) {
+    public void onBindViewHolder(ContactViewHolder holder, @SuppressLint("RecyclerView") final int position) {
 
         final Contact contact = contacts.get(position);
 
-        holder.firstNameTextView.setText(contact.getFirstName());
-        holder.secondNameTextView.setText(contact.getSecondName());
-        holder.emailTextView.setText(contact.getEmail());
-        holder.phoneNumberTextView.setText(contact.getPhoneNumber());
+        holder.contactListItemBinding.setContact(contact);
 
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
